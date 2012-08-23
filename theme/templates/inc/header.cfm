@@ -1,3 +1,6 @@
+<cfsilent>
+
+</cfsilent>
 <cfoutput>
 	<div id="header">
 		<div id="nav">
