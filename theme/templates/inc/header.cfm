@@ -5,9 +5,9 @@
 				#$.dspPrimaryNav(
 					viewDepth="1",
 					displayHome="Never",
-					closePortals="false",
+					closePortals="true",
 					showCurrentChildrenOnly="false"
-					)#
+				)#
 			</cf_CacheOMatic>
 			<div id="logo">
 				<a href=""><img src="#$.siteConfig('themeAssetPath')#/img/logo.png" alt=""/></a>

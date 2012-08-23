@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<project default="init" name="sims" basedir=".">
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="lib/ant-contrib-1.0b3.jar"/>
+		</classpath>
+	</taskdef>
+
+	<!-- Specify the server.name property via the Ant options. Ex: ant -Dserver.name=foo build -->
+	<property file="${server.name}.properties"/>
+	
+	<!-- The user.name system property is provided by the JVM, which reads the environment variable %USERNAME% or $USER -->
+	<property file="${user.name}.properties"/>
+
+	<property name="project.build" location="."/>
+	<property name="project.test" location="../test"/>
+	<property name="project.site" location="../site"/>
+	<property name="project.theme" location="../theme"/>
+	<property name="project.cache" location="../cache"/>
+	<property name="project.work" location="../work"/>
+	<property name="project.cdn" value="http://localhost"/>
+
+	<import file="${project.build}/macrodefs/requirefile.xml"/>
+
+	<!-- Tomcat -->
+	<property name="tomcat.home" location="/var/lib/tomcat7"/>
+	<property name="tomcat.docbase" value="${tomcat.home}/webapps/ROOT"/>
+
+	<!-- CFML Engine -->
+	<property name="cfml.engine" value="railo-3.3"/>
+	<property name="cfml.engine.root" location="${tomcat.docbase}"/>
+	<property name="cfml.engine.webinf" location="${cfml.engine.root}/WEB-INF"/>
+	<property name="cfml.engine.webroot" value="${cfml.engine.root}"/>
+
+	<!-- Mura -->
+	<property name="mura.root" location="${cfml.engine.root}"/>
+	<property name="mura.site.name" value="sims"/>
+	<property name="mura.site.root" location="${mura.root}/${mura.site.name}"/>
+	<property name="mura.theme.name" value="kick"/>
+	<property name="mura.theme.root" location="${mura.site.root}/includes/themes/${mura.theme.name}"/>
+	<property name="mura.dist" value="mura-5.6.4994.zip"/>
+	
+	<!-- Nginx -->
+	<property name="nginx.root" value="/usr/share/nginx"/>
+	<property name="nginx.exec" value="/usr/sbin/nginx"/>
+	<property name="nginx.conf" value="/etc/nginx/conf.d"/>
+	<property name="nginx.hostname" value="standinmyshoes.com"/>
+	<property name="nginx.port" value="80"/>
+	<property name="nginx.log.path" value="/var/log/nginx"/>
+	<property name="nginx.app.server" value="127.0.0.1"/>
+	<property name="nginx.app.port" value="8080"/>
+	<property name="nginx.app.webroot" value="${cfml.engine.webroot}"/>
+
+	<!-- Railo -->
+	<property name="railo.dist" value="railo-3.3.4.003.war"/>
+	
+	<!-- ColdBox -->
+	<property name="coldbox.dist" value="coldbox_standalone_3.5.1.zip"/>
+	
+	<!-- Webapp Properties -->
+	<property name="webapp.server" value="${nginx.hostname}"/>
+	<property name="webapp.port" value="${nginx.port}"/>
+	<property name="webapp.path" location="${cfml.engine.webroot}"/>
+
+	<!-- Deploy information -->
+	<tstamp>
+		<format property="deploy.release" pattern="yyyyMMdd"/>
+	</tstamp>
+	<property name="deploy.hostname" value="${nginx.hostname}"/>
+	<property name="deploy.port" value="${nginx.port}"/>
+	<if>
+		<equals arg1="${deploy.port}" arg2="80"/>
+		<then>
+			<property name="deploy.baseurl" value="http://${deploy.hostname}/"/>
+		</then>
+		<else>
+			<property name="deploy.baseurl" value="http://${deploy.hostname}:${deploy.port}/"/>
+		</else>
+	</if>
+
+	<target name="init" description="Initialize working directory and perform sanity check.">
+		<echo message="Starting Ant from ${basedir} by user ${user.name}"/>
+
+		<fail message="The CFML engine root (${cfml.engine.root}) does not exist.">
+			<condition>
+				<not>
+					<available file="${cfml.engine.root}" type="dir"/>
+				</not>
+			</condition>
+		</fail>
+		<fail message="The CFML engine webroot (${cfml.engine.webroot}) does not exist.">
+			<condition>
+				<not>
+					<available file="${cfml.engine.webroot}" type="dir"/>
+				</not>
+			</condition>
+		</fail>
+		<delete dir="${project.work}"/>
+		<mkdir dir="${project.work}"/>
+	</target>
+
+	<target name="deploy-mura" depends="init" description="Deploy CFML application to server.">
+		<echo message="Deploying Mura to ${cfml.engine.webroot}"/>
+
+	</target>
+
+	<target name="deploy-site" depends="init" description="Deploy CFML application to server.">
+		<echo message="Deploying Mura site to ${mura.site.root}"/>
+
+		<copy todir="${mura.site.root}" overwrite="true">
+			<fileset dir="${project.site}">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deploy-theme" depends="init" description="Deploy CFML application to server.">
+		<echo message="Deploying Mura theme to ${mura.theme.root}"/>
+
+		<copy todir="${mura.theme.root}" overwrite="true">
+			<fileset dir="${project.theme}">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deploy-nginx">
+		<echo message="Deploying Nginx configuration."/>
+	</target>
+
+	<target name="deploy-railo" depends="init">
+		<requirefile file="${project.cache}/${railo.dist}" url="${project.cdn}/dist/${railo.dist}"/>
+		
+		<delete dir="${tomcat.vhosts}/${tomcat.docbase}">
+			<patternset>
+				<include name="WEB-INF/**"/>
+				<exclude name="WEB-INF/railo/railo-web.xml.cfm"/>
+				<exclude name="WEB-INF/lib/railo-server/context/railo-server.xml"/>
+			</patternset>
+		</delete>
+		<unwar src="${project.cache}/${railo.dist}" dest="${tomcat.vhosts}/${tomcat.docbase}">
+			<patternset>
+				<include name="WEB-INF/**"/>
+			</patternset>
+		</unwar>
+		<copy todir="${cfml.engine.webinf}" overwrite="true">
+			<fileset dir="${project.src}/config/railo">
+				<include name="*.xml"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="update-railo" depends="init">
+		<copy todir="${railo.server.path}/patches" overwrite="true">
+			<fileset dir="${project.lib}">
+				<include name="*.rc"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="undeploy" depends="init" description="Remove a deployed copy of the application.">
+		<echo message="Undeploying from ${cfml.engine.webroot}"/>
+		<delete includeemptydirs="true">
+			<fileset dir="${cfml.engine.webroot}">
+				<include name="**/*"/>
+				<exclude name="WEB-INF/"/>
+				<exclude name="CFIDE/"/>
+			</fileset>
+		</delete>
+	</target>
+
+</project>
