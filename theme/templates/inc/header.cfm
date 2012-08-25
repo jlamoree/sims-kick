@@ -13,7 +13,7 @@
 				)#
 			</cf_CacheOMatic>
 			<div id="logo">
-				<a href=""><img src="#$.siteConfig('themeAssetPath')#/img/logo.png" alt=""/></a>
+				<a href="/"><img src="#$.siteConfig('themeAssetPath')#/img/logo.png" alt=""/></a>
 			</div><!--end logo-->
 		</div><!--end nav-->
 	</div><!--end header-->
