@@ -2,18 +2,27 @@
 	<cfset backer = structNew()/>
 	<cfset backerData = arrayNew(1)/>
 	<cfset backerBean = ""/>
+	<cfset latestExecutiveProducer = ""/>
+	<cfset executiveProducerCount = 0/>
+	<cfset executiveProducerLimit = 500/>
 	<cfset backerIterator = application.contentManager.getActiveContentByFilename("backer-collection", $.event("siteID")).getKidsIterator()/>
 	<cfloop condition="backerIterator.hasNext()">
 		<cfset backerBean = backerIterator.next()/>
 		<cfset structClear(backer)/>
 		<cfset backer.number = backerIterator.currentIndex()/>
 		<cfset backer.name = ucase(backerBean.getTitle())/>
-		<cfset backer.title = ucase("Executive Producer")/>
+		<cfset backer.title = ucase(backerBean.getBackerTitle())/>
 		<cfset backer.facebookURL = backerBean.getURL()/>
 		<cfset backer.image = backerBean.getImageURL(size="large")/>
 		<cfset backer.size = backerBean.getBackerSize()/>
 		<cfset arrayAppend(backerData, duplicate(backer))/>
+		<cfif backerBean.getBackerType() eq "ep">
+			<cfset latestExecutiveProducer = backerBean/>
+			<cfset executiveProducerCount = executiveProducerCount + 1/>
+		</cfif>
 	</cfloop>
+	
+	<cfset executiveProducerLeft = executiveProducerLimit - executiveProducerCount/>
 </cfsilent>
 <cfoutput>
 <cfinclude template="inc/html_head.cfm"/>
@@ -40,7 +49,7 @@
 		</div><!--end video-->
 		<div id="producer">
 			<div id="producerIn">
-				<cfif isObject(backerBean)>
+				<cfif isObject(latestExecutiveProducer)>
 					<h3>NEWEST EXECUTIVE PRODUCER: <span class="white">#ucase(backerBean.getTitle())#!</span> <img src="#backerBean.getImageURL(width=41, height=42)#" alt=""/></h3>
 					<img src="#$.siteConfig('themeAssetPath')#/img/ImBacker.png" alt="" id="ImBacker"/>
 				</cfif>
@@ -51,7 +60,7 @@
 	<div id="pledged">
 		<h1>PLEDGED EXECUTIVE PRODUCERS <a href=""><img src="#$.siteConfig('themeAssetPath')#/img/questionIcon.png" alt=""/></a></h1>
 		<ul>
-			<li><a href=""><img src="#$.siteConfig('themeAssetPath')#/img/producerCount.png" alt=""/></a></li>
+			<li><a href="" id="executiveProducerCount"><span>#executiveProducerLeft# of #executiveProducerLimit#</span> EXECUTIVE PRODUCER POSITIONS LEFT</a></li>
 			<li><a href="#$.content('ksURL')#"><img src="#$.siteConfig('themeAssetPath')#/img/pledge.png" alt=""/></a></li>
 		</ul>
 	</div><!--end pledged-->
@@ -68,7 +77,7 @@
 				<div class="backer"></div>
 				<div class="number">###backer.number#</div>
 				<cfif len(backer.facebookURL)>
-					<div class="facebook"><a href=""><img src="#$.siteConfig('themeAssetPath')#/img/facebook.png" alt=""/></a></div>
+					<div class="facebook"><a href="#backer.facebookURL#"><img src="#$.siteConfig('themeAssetPath')#/img/facebook.png" alt=""/></a></div>
 				</cfif>
 			</div><!--end sSquare-->
 		</cfloop>
