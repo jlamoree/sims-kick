@@ -17,7 +17,7 @@
 		<cfset backer.size = backerBean.getBackerSize()/>
 		<cfset arrayAppend(backerData, duplicate(backer))/>
 		<cfif backerBean.getBackerType() eq "ep">
-			<cfset latestExecutiveProducer = backerBean/>
+			<cfset latestExecutiveProducer = duplicate(backerBean)/>
 			<cfset executiveProducerCount = executiveProducerCount + 1/>
 		</cfif>
 	</cfloop>
