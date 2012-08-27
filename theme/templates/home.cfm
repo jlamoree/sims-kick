@@ -1,6 +1,6 @@
 <cfsilent>
 	<cfset backerData = arrayNew(1)/>
-	<cfset latestExecutiveProducer = ""/>
+	<cfset latestExecutiveProducer = structNew()/>
 	<cfset executiveProducerCount = 0/>
 	<cfset executiveProducerLimit = 500/>
 	<cfset backerIterator = application.contentManager.getActiveContentByFilename("backer-collection", $.event("siteID")).getKidsIterator()/>
@@ -15,7 +15,8 @@
 		<cfset backer.size = backerBean.getBackerSize()/>
 		<cfset arrayAppend(backerData, backer)/>
 		<cfif backerBean.getBackerType() eq "ep">
-			<cfset latestExecutiveProducer = backerBean/>
+			<cfset latestExecutiveProducer.name = ucase(backerBean.getTitle())/>
+			<cfset latestExecutiveProducer.image = backerBean.getImageURL(width=41, height=42)/>
 			<cfset executiveProducerCount = executiveProducerCount + 1/>
 		</cfif>
 	</cfloop>
@@ -47,8 +48,8 @@
 		</div><!--end video-->
 		<div id="producer">
 			<div id="producerIn">
-				<cfif isObject(latestExecutiveProducer)>
-					<h3>NEWEST EXECUTIVE PRODUCER: <span class="white">#ucase(latestExecutiveProducer.getTitle())#!</span> <img src="#latestExecutiveProducer.getImageURL(width=41, height=42)#" alt=""/></h3>
+				<cfif isStruct(latestExecutiveProducer) and structCount(latestExecutiveProducer)>
+					<h3>NEWEST EXECUTIVE PRODUCER: <span class="white">#latestExecutiveProducer.name#!</span> <img src="#latestExecutiveProducer.image#" alt=""/></h3>
 					<img src="#$.siteConfig('themeAssetPath')#/img/ImBacker.png" alt="" id="ImBacker"/>
 				</cfif>
 			</div>
